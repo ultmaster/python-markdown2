@@ -1,14 +1,11 @@
 import re
-import execjs
+import subprocess
 
 
 class KatexInterpreter:
 
     def __init__(self):
-        self.source = open('./katex.js').read()
-        print(self.source)
-        self.katex = execjs.get('Node.js (V8)').eval(self.source)
-        print(self.katex)
+        pass
 
     def find_equations(self, string):
         """ Take in a string, and convert everything between $ ... $ into an inline
@@ -32,12 +29,17 @@ class KatexInterpreter:
     def eqn_to_html(self, eqn_string):
         """ Takes equation string, e.g. "E = mc^2", and outputs KaTeX HTML """
 
+        command = ['node', './katex/katex.port.js', eqn_string]
         try:
-            return self.katex.call("katex.renderToString", "E = mc^2")
+            process = subprocess.Popen(command, stdout=subprocess.PIPE)
+            process.wait(20)
+            if process.returncode != 0:
+                raise ReferenceError
+            return process.stdout.read().decode()
         except ReferenceError:
             print("Error rendering KaTeX HTML. Please ensure that you have")
             print("imported KaTeX into the Python namespace.")
-            return False
+            return ''
 
 
     def replace_eqn(string):
@@ -48,6 +50,6 @@ class KatexInterpreter:
 
 
 k = KatexInterpreter()
-tt = execjs.compile('function abc(){return 3;}')
-print(tt.call('abc'))
-k.eqn_to_html('')
+print(k.eqn_to_html(''))
+print(k.eqn_to_html("E=mc^2"))
+print(k.eqn_to_html("c = \\pm\\sqrt{a^2 + b^2}"))
