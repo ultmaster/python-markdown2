@@ -1,0 +1,2 @@
+Pygments==2.2.0
+PyExecJS==1.4.0
