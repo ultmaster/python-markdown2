@@ -129,9 +129,7 @@ class AIPMarkdown(Markdown):
         text = re.sub(self._hr_re, hr, text)
 
         text = self._do_lists(text)
-
         text = self._do_code_blocks(text)
-
         text = self._do_block_quotes(text)
 
         # We already ran _HashHTMLBlocks() before, in Markdown(), but that
@@ -178,3 +176,13 @@ class AIPMarkdown(Markdown):
                 grafs.append("<p>" + graf.lstrip(" \t") + "</p>")
 
         return "\n\n".join(grafs)
+
+    def _katex(self, text):
+        """ katex format """
+        text = self._hash_html_blocks(text)
+
+        from katex.katex import katex_convert
+        text = self._hash_html_blocks(text)
+        text = katex_convert(text)
+
+        return text
