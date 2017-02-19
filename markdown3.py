@@ -57,6 +57,9 @@ class AIPMarkdown(Markdown):
         # Used in safe mode and for code highlight
         text = self._do_fenced_code_blocks(text)
 
+        # Used to deal with katex
+        text = self._katex(text)
+
         # Strip link definitions, store in hashes.
         text = self._strip_link_definitions(text)
 
@@ -179,10 +182,21 @@ class AIPMarkdown(Markdown):
 
     def _katex(self, text):
         """ katex format """
-        text = self._hash_html_blocks(text)
+        # text = self._hash_html_blocks(text)
 
         from katex.katex import katex_convert
-        text = self._hash_html_blocks(text)
+        # text = self._hash_html_blocks(text)
         text = katex_convert(text)
 
         return text
+
+
+if __name__ == '__main__':
+    text = """
+The first line contains single integer $n (2 \leq n \leq 10^5)$ — the number of vertices in the tree.
+Each of the next $n-1$ lines contains two integers $u$ and $v$ ($1 \leq u,v \leq n, u \\neq v$), denoting there is an edge between vertices $u$ and $v$. It is guaranteed that the given graph is a tree.
+The next line contains $n$ integers $c_1$, $c_2$, ..., $c_n$ ($1 \leq c_i \leq 10^5 $), denoting the colors of the vertices.
+$c_2$
+$1 \leq c_i \leq 10^5 $
+    """
+    AIPMarkdown().convert(text)
