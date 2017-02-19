@@ -4,20 +4,21 @@ import subprocess
 
 class KatexInterpreter:
 
-    def __init__(self):
-        pass
+    _katex_span_re = re.compile(r'''
+        (?<!\\)
+        \$
+        (?!\$)
+        (.+?)
+        (?<![\\\$])
+        \$
+        (?!\$)
+    ''', re.X | re.S)
 
     def find_equations(self, string):
-        """ Take in a string, and convert everything between $ ... $ into an inline
-        equation and everything between $$ ... $$ into a centred equation. """
+        """ Take in a string, and convert everything between $ ... $ into an equation. """
 
-        doubledollar = re.compile(r"\$\$([^$]+)\$\$")
-        singledollar = re.compile(r"(?<![\$])\$([^$]+)\$(?!\$)")
-
-        inline_equations = re.findall(singledollar, string)
-        centred_equations = re.findall(doubledollar, string)
-
-        return inline_equations, centred_equations
+        equations = self._katex_span_re.findall(string)
+        return equations
 
     def remove_dollars(self, string):
         """ Takes equation delimited by dollars as input, and removes the dollar
@@ -50,6 +51,4 @@ class KatexInterpreter:
 
 
 k = KatexInterpreter()
-print(k.eqn_to_html(''))
-print(k.eqn_to_html("E=mc^2"))
-print(k.eqn_to_html("c = \\pm\\sqrt{a^2 + b^2}"))
+print(k.find_equations("$hello$"))
