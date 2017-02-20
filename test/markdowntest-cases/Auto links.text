@@ -8,6 +8,6 @@ With an ampersand: <http://example.com/?foo=1&bar=2>
 
 > Blockquoted: <http://example.com/>
 
-Auto-links should not occur here: `<http://example.com/>`
+Auto-links should not occur here: `<http://example.com/> </code>`
 
 	or here: <http://example.com/>

@@ -60,17 +60,15 @@ class AIPMarkdown(Markdown):
 
         text = self.preprocess(text)
 
+        # Code and katex
+        text = self._do_code_blocks(text)
+        text = self._do_fenced_code_blocks(text)
+        text = self._do_code_spans(text)
+        text = self._katex(text)
+
         # Used in safe mode
         text = self._hash_html_spans(text)
-
-        # Turn block-level HTML blocks into hash entries
         text = self._hash_html_blocks(text, raw=True)
-
-        # Used in safe mode and for code highlight
-        text = self._do_fenced_code_blocks(text)
-
-        # Used to deal with katex
-        text = self._katex(text)
 
         # Strip link definitions, store in hashes.
         text = self._strip_link_definitions(text)
@@ -83,6 +81,7 @@ class AIPMarkdown(Markdown):
 
         # Used in safe mode
         text = self._unhash_html_spans(text)
+
         text = self._unhash_code_and_katex(text)
 
         text += "\n"
@@ -127,8 +126,11 @@ class AIPMarkdown(Markdown):
         codeblock = self._encode_code(codeblock)
         pre_class_str = self._html_class_str_from_tag("pre")
         code_class_str = self._html_class_str_from_tag("code")
-        return "\n\n<pre%s><code%s>%s\n</code></pre>\n\n" % (
-            pre_class_str, code_class_str, codeblock)
+        return self._hash_code_and_katex("\n\n<pre%s><code%s>%s\n</code></pre>\n\n" % (
+            pre_class_str, code_class_str, codeblock))
+
+    def _code_span_sub(self, match):
+        return self._hash_code_and_katex(super()._code_span_sub(match))
 
     def _run_block_gamut(self, text):
         # These are all the transformations that form block-level
@@ -145,7 +147,6 @@ class AIPMarkdown(Markdown):
         text = re.sub(self._hr_re, hr, text)
 
         text = self._do_lists(text)
-        text = self._do_code_blocks(text)
         text = self._do_block_quotes(text)
 
         # We already ran _HashHTMLBlocks() before, in Markdown(), but that
@@ -161,8 +162,6 @@ class AIPMarkdown(Markdown):
     def _run_span_gamut(self, text):
         # These are all the transformations that occur *within* block-level
         # tags like paragraphs, headers, and list items.
-
-        text = self._do_code_spans(text)
 
         text = self._escape_special_chars(text)
 
@@ -246,6 +245,10 @@ class AIPMarkdown(Markdown):
             return self._hash_code_and_katex(_eqn_to_html(match.group(2)).strip())
         return ''
 
+    def _encode_code(self, text):
+        """ abandoned method """
+        return text
+
     def _hash_code_and_katex(self, html):
         from hashlib import md5
         def _hash_text(s):
@@ -261,17 +264,5 @@ class AIPMarkdown(Markdown):
 
 
 if __name__ == '__main__':
-    text = """
-Just a [URL](http://www.rkrkrk/url/).
-
-[URL and title](/url/ "title").
-
-[URL and title](/url/  "title preceded by two spaces").
-
-[URL and title](/url/	"title preceded by a tab").
-
-[Empty]().
-
-
-    """
+    text = "\n```\n6>5\n```\n"
     print(convert(text))
