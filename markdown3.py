@@ -6,6 +6,12 @@ class AIPMarkdown(Markdown):
 
     def __init__(self):
         super().__init__(self, safe_mode=True, extras=['fenced-code-blocks'])
+        from random import randint
+        self._SECRET_SALT = bytes(randint(0, 1000000))
+
+    def reset(self):
+        super().reset()
+        self.html_code_and_katex = {}
 
     def convert(self, text):
         """Convert the given text."""
@@ -18,6 +24,7 @@ class AIPMarkdown(Markdown):
 
         # Remove: utf-8 support
         # Remove: a lot of extras
+        # Remove: single \n to break line, space at eol not working
 
         # Modify: safe mode automatically turned on
         # Modify: render h1 to title, h2 to heading, h3/h4/h5/h6 to heading-2
@@ -60,6 +67,7 @@ class AIPMarkdown(Markdown):
         # Used to deal with katex
         text = self._katex(text)
 
+        print(text)
         # Strip link definitions, store in hashes.
         text = self._strip_link_definitions(text)
 
@@ -71,6 +79,7 @@ class AIPMarkdown(Markdown):
 
         # Used in safe mode
         text = self._unhash_html_spans(text)
+        text = self._unhash_code_and_katex(text)
 
         text += "\n"
 
@@ -114,8 +123,8 @@ class AIPMarkdown(Markdown):
         codeblock = self._encode_code(codeblock)
         pre_class_str = self._html_class_str_from_tag("pre")
         code_class_str = self._html_class_str_from_tag("code")
-        return "\n\n<pre%s><code%s>%s\n</code></pre>\n\n" % (
-            pre_class_str, code_class_str, codeblock)
+        return self._hash_code_and_katex("\n<pre%s><code%s>%s\n</code></pre>\n" % (
+            pre_class_str, code_class_str, codeblock))
 
     def _run_block_gamut(self, text):
         # These are all the transformations that form block-level
@@ -142,6 +151,37 @@ class AIPMarkdown(Markdown):
         text = self._hash_html_blocks(text)
 
         text = self._form_paragraphs(text)
+
+        return text
+
+    def _run_span_gamut(self, text):
+        # These are all the transformations that occur *within* block-level
+        # tags like paragraphs, headers, and list items.
+
+        text = self._do_code_spans(text)
+
+        text = self._escape_special_chars(text)
+
+        # Process anchor and image tags.
+        text = self._do_links(text)
+
+        # Make links out of things like `<http://example.com/>`
+        # Must come after _do_links(), because you can use < and >
+        # delimiters in inline links like [this](<url>).
+        text = self._do_auto_links(text)
+
+        if "link-patterns" in self.extras:
+            text = self._do_link_patterns(text)
+
+        text = self._encode_amps_and_angles(text)
+
+        if "strike" in self.extras:
+            text = self._do_strike(text)
+
+        text = self._do_italics_and_bold(text)
+
+        if "smarty-pants" in self.extras:
+            text = self._do_smart_punctuation(text)
 
         return text
 
@@ -180,14 +220,39 @@ class AIPMarkdown(Markdown):
 
         return "\n\n".join(grafs)
 
+    _katex_span_re = re.compile(r'''
+            (?<!\\)
+            (\$)
+            (?!\$)
+            (.+?)
+            (?<!\\)
+            (\$)
+            (?!\$)
+        ''', re.X | re.S)
+
     def _katex(self, text):
         """ katex format """
-        # text = self._hash_html_blocks(text)
 
-        from katex.katex import katex_convert
-        # text = self._hash_html_blocks(text)
-        text = katex_convert(text)
+        return self._katex_span_re.sub(self._sub_katex, text)
 
+    def _sub_katex(self, match):
+        from katex.katex import _eqn_to_html
+        print(match.group(2))
+        if match.group(2):
+            return self._hash_code_and_katex(_eqn_to_html(match.group(2)).strip())
+        return ''
+
+    def _hash_code_and_katex(self, html):
+        from hashlib import md5
+        def _hash_text(s):
+            return 'md5-' + md5(self._SECRET_SALT + s.encode("utf-8")).hexdigest()
+        key = _hash_text(html)
+        self.html_code_and_katex[key] = html
+        return key
+
+    def _unhash_code_and_katex(self, text):
+        for key, sanitized in list(self.html_code_and_katex.items()):
+            text = text.replace(key, sanitized)
         return text
 
 
@@ -199,4 +264,4 @@ The next line contains $n$ integers $c_1$, $c_2$, ..., $c_n$ ($1 \leq c_i 
 $c_2$
 $1 \leq c_i \leq 10^5 $
     """
-    AIPMarkdown().convert(text)
+    print(AIPMarkdown().convert(text))
