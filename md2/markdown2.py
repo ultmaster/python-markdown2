@@ -1712,6 +1712,7 @@ class Markdown(object):
     def _code_block_sub(self, match, is_fenced_code_block=False):
         lexer_name = None
         if is_fenced_code_block:
+            print(match)
             lexer_name = match.group(1)
             if lexer_name:
                 formatter_opts = self.extras['fenced-code-blocks'] or {}

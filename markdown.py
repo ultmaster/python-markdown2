@@ -1,5 +1,10 @@
-from markdown2 import Markdown
+from md2.markdown2 import Markdown
 import re
+
+
+def convert(text):
+    """ convert a aip-markdown to html """
+    return AIPMarkdown().convert(text)
 
 
 class AIPMarkdown(Markdown):
@@ -24,7 +29,7 @@ class AIPMarkdown(Markdown):
 
         # Remove: utf-8 support
         # Remove: a lot of extras
-        # Remove: single \n to break line, space at eol not working
+        # Remove: single \n to break line, space at eol not working now
 
         # Modify: safe mode automatically turned on
         # Modify: render h1 to title, h2 to heading, h3/h4/h5/h6 to heading-2
@@ -67,7 +72,6 @@ class AIPMarkdown(Markdown):
         # Used to deal with katex
         text = self._katex(text)
 
-        print(text)
         # Strip link definitions, store in hashes.
         text = self._strip_link_definitions(text)
 
@@ -96,7 +100,7 @@ class AIPMarkdown(Markdown):
 
     def _code_block_sub(self, match, is_fenced_code_block=False):
         if not is_fenced_code_block:
-            return super()._code_block_sub(self, match)
+            return super()._code_block_sub(match)
         lexer_name = match.group(2)
         formatter_opts = self.extras['fenced-code-blocks'] or {}
         codeblock = match.group(3)
@@ -123,8 +127,8 @@ class AIPMarkdown(Markdown):
         codeblock = self._encode_code(codeblock)
         pre_class_str = self._html_class_str_from_tag("pre")
         code_class_str = self._html_class_str_from_tag("code")
-        return self._hash_code_and_katex("\n<pre%s><code%s>%s\n</code></pre>\n" % (
-            pre_class_str, code_class_str, codeblock))
+        return "\n\n<pre%s><code%s>%s\n</code></pre>\n\n" % (
+            pre_class_str, code_class_str, codeblock)
 
     def _run_block_gamut(self, text):
         # These are all the transformations that form block-level
@@ -258,10 +262,15 @@ class AIPMarkdown(Markdown):
 
 if __name__ == '__main__':
     text = """
-The first line contains single integer $n (2 \leq n \leq 10^5)$ — the number of vertices in the tree.
-Each of the next $n-1$ lines contains two integers $u$ and $v$ ($1 \leq u,v \leq n, u \\neq v$), denoting there is an edge between vertices $u$ and $v$. It is guaranteed that the given graph is a tree.
-The next line contains $n$ integers $c_1$, $c_2$, ..., $c_n$ ($1 \leq c_i \leq 10^5 $), denoting the colors of the vertices.
-$c_2$
-$1 \leq c_i \leq 10^5 $
+In Markdown 1.0.0 and earlier. Version
+8. This line turns into a list item.
+Because a hard-wrapped line in the
+middle of a paragraph looked like a
+list item.
+
+Here's one with a bullet.
+* criminey.
+
+
     """
-    print(AIPMarkdown().convert(text))
+    print(convert(text))
