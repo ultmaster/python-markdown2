@@ -8,7 +8,7 @@ class MarkdownTest(unittest.TestCase):
     def test_markdown(self):
         import os
         dirname = os.path.dirname(__file__)
-        for (path, dirs, files) in os.walk(dirname):
+        for (path, dirs, files) in os.walk(os.path.join(dirname, 'markdowntest-cases')):
             for file in files:
                 if file.endswith('.text'):
                     try:

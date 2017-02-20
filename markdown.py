@@ -262,14 +262,15 @@ class AIPMarkdown(Markdown):
 
 if __name__ == '__main__':
     text = """
-In Markdown 1.0.0 and earlier. Version
-8. This line turns into a list item.
-Because a hard-wrapped line in the
-middle of a paragraph looked like a
-list item.
+Just a [URL](http://www.rkrkrk/url/).
 
-Here's one with a bullet.
-* criminey.
+[URL and title](/url/ "title").
+
+[URL and title](/url/  "title preceded by two spaces").
+
+[URL and title](/url/	"title preceded by a tab").
+
+[Empty]().
 
 
     """
