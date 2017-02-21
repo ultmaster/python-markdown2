@@ -240,7 +240,6 @@ class AIPMarkdown(Markdown):
 
     def _sub_katex(self, match):
         from katex.katex import _eqn_to_html
-        print(match.group(2))
         if match.group(2):
             return self._hash_code_and_katex(_eqn_to_html(match.group(2)).strip())
         return ''
@@ -264,5 +263,5 @@ class AIPMarkdown(Markdown):
 
 
 if __name__ == '__main__':
-    text = "\n```\n6>5\n```\n"
+    text = "$E=mc^2$"
     print(convert(text))
